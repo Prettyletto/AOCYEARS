@@ -11,108 +11,14 @@ import (
 )
 
 type Point struct {
-	x      int
-	y      int
-	facing rune
+	x int
+	y int
 }
 
-func move(p *Point, direction rune, distance int) {
-	switch p.facing {
-	case 'N':
-		if direction == 'R' {
-			p.x += distance
-			p.facing = 'E'
-		} else {
-			p.x -= distance
-			p.facing = 'W'
-		}
-	case 'S':
-		if direction == 'R' {
-			p.x -= distance
-			p.facing = 'W'
-		} else {
-			p.x += distance
-			p.facing = 'E'
-		}
-	case 'E':
-		if direction == 'R' {
-			p.y -= distance
-			p.facing = 'S'
-		} else {
-			p.y += distance
-			p.facing = 'N'
-		}
-	case 'W':
-		if direction == 'R' {
-			p.y += distance
-			p.facing = 'N'
-		} else {
-			p.y -= distance
-			p.facing = 'S'
-		}
-	default:
-	}
+var DIR = [4]Point{
+	{0, 1}, {1, 0}, {0, -1}, {-1, 0},
 }
 
-func moveUnit(p *Point, direction rune) {
-	switch p.facing {
-	case 'N':
-		if direction == 'R' {
-			p.x++
-		} else {
-			p.x--
-		}
-	case 'S':
-		if direction == 'R' {
-			p.x--
-		} else {
-			p.x++
-		}
-	case 'E':
-		if direction == 'R' {
-			p.y--
-		} else {
-			p.y++
-		}
-	case 'W':
-		if direction == 'R' {
-			p.y++
-		} else {
-			p.y--
-		}
-	default:
-	}
-}
-
-func changeDirection(p *Point, direction rune) {
-	switch p.facing {
-	case 'N':
-		if direction == 'R' {
-			p.facing = 'E'
-		} else {
-			p.facing = 'W'
-		}
-	case 'S':
-		if direction == 'R' {
-			p.facing = 'W'
-		} else {
-			p.facing = 'E'
-		}
-	case 'E':
-		if direction == 'R' {
-			p.facing = 'S'
-		} else {
-			p.facing = 'N'
-		}
-	case 'W':
-		if direction == 'R' {
-			p.facing = 'N'
-		} else {
-			p.facing = 'S'
-		}
-	default:
-	}
-}
 func (p Point) String() string {
 	return fmt.Sprintf("Point {x:%d y:%d}", p.x, p.y)
 }
@@ -136,27 +42,32 @@ func main() {
 		instructions := strings.Split(line, ",")
 		set := make(map[Point]bool)
 		var point Point
-		point.facing = 'N'
-		for i := 0; i < len(instructions); i++ {
+		facing := 0
+
+		for i := range instructions {
 			reading := strings.TrimSpace(instructions[i])
-			letter := rune(reading[0])
+			ins := rune(reading[0])
 			number, err := strconv.Atoi(reading[1:])
 			if err != nil {
 				log.Fatal(err)
 			}
+			turn := 1
+			if ins == 'L' {
+				turn = -1
+			}
+			facing = (facing + turn + len(DIR)) % len(DIR)
 			for j := 0; j < number; j++ {
-				moveUnit(&point, letter)
-				tmpPoint := Point{x: point.x, y: point.y}
-				if set[tmpPoint] {
-					fmt.Println(math.Abs(float64(tmpPoint.x + tmpPoint.y)))
+				point.x += DIR[facing].x
+				point.y += DIR[facing].y
 
+				if set[point] {
+					fmt.Println(math.Abs(float64(point.x + point.y)))
 					return
 				} else {
-					set[tmpPoint] = true
+					set[point] = true
 				}
 			}
 
-			changeDirection(&point, letter)
 		}
 
 	}
